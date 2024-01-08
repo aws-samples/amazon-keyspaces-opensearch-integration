@@ -93,3 +93,11 @@ Finally, delete the CDKToolkit CloudFormation stack to remove the CDK resources.
  * `cdk docs`        open CDK documentation
 
 Enjoy!
+
+## Security
+
+See [CONTRIBUTING](https://github.com/aws-samples/amazon-keyspaces-opensearch-integration/blob/main/CONTRIBUTING.md#security-issue-notifications) for more information.
+
+## License
+
+This library is licensed under the MIT-0 License. See the LICENSE file.
