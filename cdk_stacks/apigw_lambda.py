@@ -83,6 +83,24 @@ class OpsApigwLambdaStack(Stack):
             handler=apigw_lambda,
         )
 
-
+        #Deploy the API Gateway to a stage.
+        deployment = apigw_.Deployment(
+            self,
+            "Deployment",
+            api=api,
+            retain_deployments=False
+        )
+        stage = apigw_.Stage(
+            self,
+            "Stage",
+            deployment=deployment,
+            stage_name="blog"
+        )
+        api.deployment_stage = stage
+        cdk.CfnOutput(
+            self,
+            "ApiUrl",
+            value=api.url
+        )
 
 
