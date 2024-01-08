@@ -1,0 +1,7 @@
+aws-cdk-lib==2.81.0
+constructs>=10.0.0,<11.0.0
+urllib3<2
+awscurl
+cassandra-driver
+cassandra-sigv4
+requests-auth-aws-sigv4
