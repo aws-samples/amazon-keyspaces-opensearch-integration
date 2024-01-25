@@ -79,7 +79,7 @@ class OpsApigwLambdaStack(Stack):
         #Create the API Gateway.
         api = apigw_.LambdaRestApi(
             self,
-            "Endpoint",
+            "Keyspaces-OpenSearch-Endpoint",
             handler=apigw_lambda,
         )
 
