@@ -31,11 +31,10 @@ product-pipeline:
         index_type: custom
         index: "products"
         document_id_field: "item/product_id"
+        flush_timeout: -1
         actions:
           - type: "delete"
             when: '/operation == "delete"'
-          - type: "update"
-            when: '/operation == "update"'
           - type: "index"                      
         aws:
           sts_role_arn: "{pipeline_role_arn}"
