@@ -3,7 +3,9 @@ import aws_cdk as cdk
 from aws_cdk import (
   Stack,
   aws_logs,
-  aws_osis
+  aws_osis,
+  aws_kms,
+  aws_iam
 )
 from constructs import Construct
 
@@ -41,10 +43,35 @@ product-pipeline:
           region: "{cdk.Aws.REGION}"
           serverless: true'''
 
+    # Create a kms key to encrypt logs with key rotation enabled.
+    kms_key = aws_kms.Key(self, "OSISPipelineLogKey",
+      enable_key_rotation=True,
+      removal_policy=cdk.RemovalPolicy.DESTROY
+    )
+
+    # Create a kms key policy to allow log group access
+    kms_key.add_to_resource_policy(
+      aws_iam.PolicyStatement(
+        actions=[
+          "kms:Encrypt*",
+          "kms:Decrypt*",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:Describe*"
+        ],
+        resources=[
+          "*"
+        ],
+        principals=[
+          aws_iam.ServicePrincipal("logs.amazonaws.com")
+        ]
+      ))
+ 
     osis_pipeline_log_group = aws_logs.LogGroup(self, 'OSISPipelineLogGroup',
       log_group_name=f"/aws/vendedlogs/OpenSearchIngestion/{pipeline_name}/audit-logs",
       retention=aws_logs.RetentionDays.THREE_DAYS,
-      removal_policy=cdk.RemovalPolicy.DESTROY
+      removal_policy=cdk.RemovalPolicy.DESTROY,
+      encryption_key=kms_key
     )
 
     cfn_pipeline = aws_osis.CfnPipeline(self, "CfnOSISPipeline",
