@@ -16,7 +16,10 @@ class OpsCollectionPipelineRoleStack(Stack):
 
     collection_pipeline_policy_doc.add_statements(aws_iam.PolicyStatement(**{
       "effect": aws_iam.Effect.ALLOW,
-      "resources": ["*"],
+      "resources": [
+        f"arn:aws:aoss:*:{cdk.Aws.ACCOUNT_ID}:collection/*",
+        f"arn:aws:aoss:*:{cdk.Aws.ACCOUNT_ID}:dashboards/default"
+        ],
       "actions": [
         "aoss:APIAccessAll",
         "aoss:DashboardsAccessAll",        

@@ -5,7 +5,8 @@ from aws_cdk import (
     Stack,
     aws_apigateway as apigw_,
     aws_lambda as lambda_,
-    aws_iam as iam_
+    aws_iam as iam_,
+    aws_kms as kms_,
     )
 
 class OpsApigwLambdaStack(Stack):
@@ -39,7 +40,7 @@ class OpsApigwLambdaStack(Stack):
         ingest_policy_doc = iam_.PolicyDocument()
         ingest_policy_doc.add_statements(iam_.PolicyStatement(**{
           "effect": iam_.Effect.ALLOW,
-          "resources": ["*"],
+          "resources": [ f"arn:aws:osis:*:{cdk.Aws.ACCOUNT_ID}:pipeline/*"],
           "actions": [
               "osis:Ingest"
           ] 
@@ -53,7 +54,6 @@ class OpsApigwLambdaStack(Stack):
             managed_policies=[
                 iam_.ManagedPolicy.from_aws_managed_policy_name('AmazonKeyspacesFullAccess'),
                 iam_.ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole')
-#                iam_.ManagedPolicy.from_aws_managed_policy_name('AmazonOpenSearchIngestionFullAccess')
             ],
             inline_policies={
                 "IngestPolicy": ingest_policy_doc
@@ -80,23 +80,16 @@ class OpsApigwLambdaStack(Stack):
         api = apigw_.LambdaRestApi(
             self,
             "Keyspaces-OpenSearch-Endpoint",
-            handler=apigw_lambda,
-        )
+            handler=apigw_lambda
+            )
 
-        #Deploy the API Gateway to a stage.
         deployment = apigw_.Deployment(
             self,
             "Deployment",
             api=api,
             retain_deployments=False
         )
-        stage = apigw_.Stage(
-            self,
-            "Stage",
-            deployment=deployment,
-            stage_name="blog"
-        )
-        api.deployment_stage = stage
+
         cdk.CfnOutput(
             self,
             "ApiUrl",
