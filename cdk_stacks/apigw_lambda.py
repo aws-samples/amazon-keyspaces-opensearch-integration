@@ -1,11 +1,15 @@
 import os
 import aws_cdk as cdk
 from constructs import Construct
+import cdk_nag
+from cdk_nag import AwsSolutionsChecks, NagSuppressions
 from aws_cdk import (
+    Aspects,
     Stack,
     aws_apigateway as apigw_,
     aws_lambda as lambda_,
-    aws_iam as iam_
+    aws_iam as iam_,
+    aws_kms as kms_,
     )
 
 class OpsApigwLambdaStack(Stack):
@@ -37,24 +41,49 @@ class OpsApigwLambdaStack(Stack):
 
         #Create an IAM policy with permission osis:ingest
         ingest_policy_doc = iam_.PolicyDocument()
-        ingest_policy_doc.add_statements(iam_.PolicyStatement(**{
-          "effect": iam_.Effect.ALLOW,
-          "resources": ["*"],
-          "actions": [
-              "osis:Ingest"
-          ] 
-        }))          
-
+        ingest_policy_doc.add_statements(
+            iam_.PolicyStatement(
+                effect=iam_.Effect.ALLOW,
+                resources=[cdk.Fn.import_value('OpsServerlessIngestionStackPipelineArn')],
+                actions=["osis:Ingest"]
+            ),
+            iam_.PolicyStatement(
+                effect=iam_.Effect.ALLOW,
+                resources=[
+                    f"arn:aws:cassandra:{cdk.Aws.REGION}:{cdk.Aws.ACCOUNT_ID}:/keyspace/productsearch/table/product_by_item",
+                    f"arn:aws:cassandra:{cdk.Aws.REGION}:{cdk.Aws.ACCOUNT_ID}:/keyspace/productsearch/"                    
+                ],
+                actions=[
+                    "cassandra:SelectMultiRegionResource",
+                    "cassandra:DropMultiRegionResource",
+                    "cassandra:Drop",
+                    "cassandra:Create",
+                    "cassandra:Alter",
+                    "cassandra:ModifyMultiRegionResource",
+                    "cassandra:Select",
+                    "cassandra:CreateMultiRegionResource",
+                    "cassandra:AlterMultiRegionResource",
+                    "cassandra:Modify"                    
+                ]
+            ),
+            iam_.PolicyStatement(
+                effect=iam_.Effect.ALLOW,
+                resources=[
+                    f"arn:aws:logs:{cdk.Aws.REGION}:{cdk.Aws.ACCOUNT_ID}:log-group:/aws/lambda/*"
+                ],
+                actions=[
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                ]
+            )
+        )   
+         
         #Create an IAM role for the Lambda function
         lambda_role = iam_.Role(
             self,
             "LambdaRole",
             assumed_by=iam_.ServicePrincipal("lambda.amazonaws.com"),
-            managed_policies=[
-                iam_.ManagedPolicy.from_aws_managed_policy_name('AmazonKeyspacesFullAccess'),
-                iam_.ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole')
-#                iam_.ManagedPolicy.from_aws_managed_policy_name('AmazonOpenSearchIngestionFullAccess')
-            ],
             inline_policies={
                 "IngestPolicy": ingest_policy_doc
             }
@@ -80,27 +109,23 @@ class OpsApigwLambdaStack(Stack):
         api = apigw_.LambdaRestApi(
             self,
             "Keyspaces-OpenSearch-Endpoint",
-            handler=apigw_lambda,
-        )
+            handler=apigw_lambda
+            )
 
-        #Deploy the API Gateway to a stage.
         deployment = apigw_.Deployment(
             self,
             "Deployment",
             api=api,
             retain_deployments=False
         )
-        stage = apigw_.Stage(
-            self,
-            "Stage",
-            deployment=deployment,
-            stage_name="blog"
-        )
-        api.deployment_stage = stage
+
         cdk.CfnOutput(
             self,
             "ApiUrl",
             value=api.url
         )
 
-
+        Aspects.of(self).add(cdk_nag.AwsSolutionsChecks())
+        NagSuppressions.add_stack_suppressions(stack=self, suppressions=[
+        {"id": "AwsSolutions-IAM5", "reason": "The wildcard is required for the Lambda function to write logs to CloudWatch."}
+    ])
