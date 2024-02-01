@@ -33,4 +33,6 @@ class OpsKeyspacesStack(Stack):
                     column_name="product_id", column_type="int"
                 )                
             ],
+            # Add a resource tag name=productsearch
+            tags=[cdk.CfnTag(key="name", value="productsearch")]
         ).add_depends_on(ks)
