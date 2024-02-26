@@ -3,7 +3,11 @@
 
 This project shows you how to integrate Amazon Keyspaces with Amazon Opensearch to provide fast search capabilities on Keyspaces tables.
 
-The solution is defined in an [AWS CDK](https://aws.amazon.com/cdk/) project. You don’t need to have prior CDK knowledge. Simply follow the steps provided here to deploy the solution. First, you’ll need to install the following prerequisites:
+The solution is defined in an [AWS CDK](https://aws.amazon.com/cdk/) project and published in this AWS [blog](https://aws.amazon.com/blogs/big-data/enable-advanced-search-capabilities-for-amazon-keyspaces-data-by-integrating-with-amazon-opensearch-service/). 
+
+## Deployment Steps
+
+First, you’ll need to install the following prerequisites:
 
 1. [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 2. AWS CLI [user profile](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html)
