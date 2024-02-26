@@ -127,5 +127,6 @@ class OpsApigwLambdaStack(Stack):
 
         Aspects.of(self).add(cdk_nag.AwsSolutionsChecks())
         NagSuppressions.add_stack_suppressions(stack=self, suppressions=[
-        {"id": "AwsSolutions-IAM5", "reason": "The wildcard is required for the Lambda function to write logs to CloudWatch."}
+            {"id": "AwsSolutions-IAM5", "reason": "The wildcard is required for the Lambda function to write logs to CloudWatch."},
+            {"id": "AwsSolutions-L1", "reason": "The runtime required is python3.9"}
     ])
